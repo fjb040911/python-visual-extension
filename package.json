@@ -12,17 +12,6 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
-    "customEditors": [
-      {
-        "viewType": "customs.eform",
-        "displayName": "EFORM CLI",
-        "selector": [
-          {
-            "filenamePattern": "*.eform"
-          }
-        ]
-      }
-    ],
     "commands": [
       {
         "command": "visual-solution.add",

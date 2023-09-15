@@ -1,7 +1,6 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { CustomEditorProvider } from './customEditor';
 import * as path from 'path';
 import { SolutionListViewInstance } from './view/solutionListView';
 import { methods, events, SOLUTION_ITEM_CLICK, solution_actions, webDir } from './constant';
@@ -16,10 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "extension-base-editor" is now active!');
-	initDb()
-	context.subscriptions.push(
-		CustomEditorProvider.register(context, webDir, '/'),
-	);
+	initDb();
 	// vscode.window.registerTreeDataProvider('visual-solution-list', SolutionListViewInstance.getDepNodeProvider());
 	const solutionListTreeView = vscode.window.createTreeView('visual-solution-list', {
 		treeDataProvider: SolutionListViewInstance.getDepNodeProvider(),
