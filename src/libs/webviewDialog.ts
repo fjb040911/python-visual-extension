@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { fixResourceReferences, fixCspSourceReferences } from './utils'
+import { fixResourceReferences, fixCspSourceReferences, fixDynamicsSrc } from './utils'
 
 /**
  * 支持传入一个html文件的路径渲染出webview
@@ -23,7 +23,8 @@ export class WebviewDialog {
 		onMessageHandle?: any,
 		viewColumn?: vscode.ViewColumn,
 		debugOption?: API.DebugWebView,
-		webViewPanel?:vscode.WebviewPanel
+		webViewPanel?:vscode.WebviewPanel,
+		replaceAsset?: Boolean
 	) {
 		console.log('******************************************************')
 		viewColumn = viewColumn || vscode.ViewColumn.One;// vscode.ViewColumn.One
@@ -57,6 +58,17 @@ export class WebviewDialog {
 		if(debugOption) {
 			this.panel.webview.html = this.debugPanel(debugOption);
 		}else {
+			if(replaceAsset) {
+				// 需要读取替换资源
+				const assetManifestPath = path.join(resourceRootDir, 'asset-manifest.json');
+				console.log('assetManifestPath:', assetManifestPath);
+				let assetManifest = fs.readFileSync(assetManifestPath, { encoding: 'utf8' });
+				console.log('assetManifest:', assetManifest);
+				if(assetManifest) {
+					const assetManifestObj = JSON.parse(assetManifest);
+					html = fixDynamicsSrc(html, assetManifestObj.files);
+				}
+			}
 			html = fixResourceReferences(html, resourceRootDir, this.panel.webview);
 			html = fixCspSourceReferences(html, this.panel.webview);
 			this.panel.webview.html = html;

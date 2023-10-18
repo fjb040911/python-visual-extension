@@ -1,8 +1,8 @@
 {
   "name": "python-visual-cli",
-  "displayName": "python-visual-cli",
+  "displayName": "python-visual",
   "description": "",
-  "version": "0.0.4",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.81.0"
   },
@@ -13,6 +13,14 @@
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
+      {
+        "command": "visual-solution.import",
+        "title": "Import",
+        "icon": {
+          "light": "assets/light/import.svg",
+          "dark": "assets/dark/import.svg"
+        }
+      },
       {
         "command": "visual-solution.add",
         "title": "Add",
@@ -32,6 +40,14 @@
           "light": "assets/light/edit.svg",
           "dark": "assets/dark/edit.svg"
         }
+      },
+      {
+        "command": "visual-solution.export",
+        "title": "Export",
+        "icon": {
+          "light": "assets/light/share.svg",
+          "dark": "assets/dark/share.svg"
+        }
       }
     ],
     "views": {
@@ -46,6 +62,11 @@
     "menus": {
       "view/title": [
         {
+          "command": "visual-solution.import",
+          "when": "view == visual-solution-list",
+          "group": "navigation"
+        },
+        {
           "command": "visual-solution.add",
           "when": "view == visual-solution-list",
           "group": "navigation"
@@ -58,7 +79,13 @@
         },
         {
           "command": "visual-solution.edit",
-          "when": "view == visual-solution-list && viewItem == solution"
+          "when": "view == visual-solution-list && viewItem == solution",
+          "group": "inline"
+        },
+        {
+          "command": "visual-solution.export",
+          "when": "view == visual-solution-list && viewItem == solution",
+          "group": "inline"
         }
       ]
     }
@@ -68,15 +95,18 @@
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
+    "pk": "npm run refresh-view && npm run package && vsce package",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "package-win": "npm run package && vsce package"
+    "refresh-view-dev": "rm -rf ./web-dist/* && cd ../extension-visual-web && npm run build && cp -R ./build/* ../extension-visual-cli/web-dist/",
+    "refresh-view": "rm -rf ./web-dist/* && cd ../extension-visual-web && npm run build && rm -rf ./build/static/js/*.map && cp -R ./build/* ../extension-visual-cli/web-dist/"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
+    "@types/json2csv": "^5.0.3",
     "@types/mocha": "^10.0.1",
     "@types/node": "20.2.5",
     "@types/vscode": "^1.81.0",
@@ -92,9 +122,12 @@
     "webpack-cli": "^5.1.1"
   },
   "dependencies": {
+    "@json2csv/plainjs": "^7.0.2",
     "@types/lodash": "^4.14.197",
     "@types/lokijs": "^1.5.8",
     "@types/uuid": "^9.0.2",
+    "csvtojson": "^2.0.10",
+    "json2csv": "^6.0.0-alpha.2",
     "lodash": "^4.17.21",
     "lokijs": "^1.5.12",
     "python-shell": "^5.0.0",

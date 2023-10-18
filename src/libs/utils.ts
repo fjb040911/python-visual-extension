@@ -13,6 +13,15 @@ export function getNonce() {
 	return text;
 }
 
+export function fixDynamicsSrc(html: string, assetManifest: any){
+    for(let scripName in assetManifest) {
+        if(scripName.endsWith('.js')) {
+            html = html.replace(scripName, assetManifest[scripName]);
+        }
+    }
+    return html;
+}
+
 /**
    * 替换 href="./file" or src="./file" 并且找到静态资源
    */
@@ -114,41 +123,53 @@ export function formartUri(uri: string){
 }
 
 export const formartEfromLayout = async (solution: API.Isolution) => {
-    let eformLayout = cloneDeep(get(solution, 'eformData.layout', []));
+    console.log('solutionobj:', solution)
+    let eformLayout = cloneDeep(get(solution, 'eformData', []));
     console.log('solution:', solution.formOptionsSetting)
     console.log('eformLayout:', eformLayout)
     if (solution.formOptionsSetting) {
         // 存在需要脚本获取的选项
         for(let i in solution.formOptionsSetting) {
-            const scriptUri = get(solution.formOptionsSetting[i], 'dataFrom.path')
-            const formItemName = i
-            if(scriptUri) {
-                const ioptions = await apiExe(get(solution.formOptionsSetting[i], 'dataFrom.type', 'python'), {
-                    script: formartUri(scriptUri)
-                })
-                console.log('ioptions=', ioptions)
-                let options = [];
-                try{
-                    options = JSON.parse(get(ioptions, 0, '[]'))
-                } catch (error) {
-                    console.error('GET options error:',error);
+            // 获取生效的策略
+            const enableIndex = findIndex(solution.formOptionsSetting[i].scheme, (item: any)=>item.enable);
+            const formItemName = solution.formOptionsSetting[i].formItemId;
+            if(enableIndex !== -1) {
+                let optionsValue = [];
+                const optionsType = get(solution.formOptionsSetting[i].scheme, [enableIndex, 'type']);
+                if(optionsType === 'Scoped') {
+                    // 指定的选项
+                    optionsValue = get(solution.formOptionsSetting[i].scheme, [enableIndex, 'data']);
+                } else if (optionsType === 'Script') {
+                    // 从python脚本取
+                    const ioptions = await apiExe('python', {
+                        script: formartUri(get(solution.formOptionsSetting[i].scheme, [enableIndex, 'data', 'path']))
+                    })
+                    console.log('ioptions=', ioptions);
+                    try{
+                        optionsValue = JSON.parse(get(ioptions, 0, '[]'));
+                    } catch (error) {
+                        console.error('GET options error:',error);
+                    }
                 }
+
+                console.log('optionsValue**********', optionsValue)
                 if(formItemName.indexOf('.')!==-1) {
                     // 说明是 group下面的组件
-                    const nameArray = formItemName.split('.')
-                    const itemIndex = findIndex(eformLayout, item=>item.props.name===nameArray[0])
+                    const nameArray = formItemName.split('.');
+                    const itemIndex = findIndex(eformLayout, item=>item.id===nameArray[0]);
                     if(itemIndex!==-1) {
-                        const subIndex = findIndex(eformLayout[itemIndex].children, (item: any)=>item.props.name===nameArray[1])
+                        const subIndex = findIndex(eformLayout[itemIndex].children, (item: any)=>item.id===nameArray[1]);
                         if(subIndex!==-1) {
-                            eformLayout = set(eformLayout, `[${itemIndex}].children[${subIndex}].privateProps.options`, options)
+                            eformLayout = set(eformLayout, `[${itemIndex}].children[${subIndex}].privateProps.options`, optionsValue);
                         }   
                     }
                 } else {
-                    const itemIndex = findIndex(eformLayout, item=>item.props.name===formItemName)
+                    const itemIndex = findIndex(eformLayout, item=>item.id===formItemName);
                     if(itemIndex!==-1) {
-                        eformLayout = set(eformLayout, `[${itemIndex}].privateProps.options`, options)
+                        eformLayout = set(eformLayout, `[${itemIndex}].privateProps.options`, optionsValue);
                     }
                 }
+
             }
         }
     }
@@ -173,9 +194,26 @@ export const jsonToFormData = (jsonData: any, separator='.')=>{
         // 再迭代一层
         const subkeys = keys(temp)
         for(let p = 0; p<subkeys.length; p++) {
-          resut[`${fkeys[i]}${separator}${subkeys[p]}`] = temp[subkeys[p]]
+          resut[`${fkeys[i]}${separator}${subkeys[p]}`] = temp[subkeys[p]];
         }
       }
     }
-    return resut
-  }
+    return resut;
+};
+
+export const getExt = (filePath: string) => {
+    const index= filePath.lastIndexOf(".");
+    //获取后缀
+    return filePath.substring(index+1);
+};
+
+export const isAssetTypeAnImage = (ext: string) => {
+    return [
+    'png', 'jpg', 'jpeg', 'bmp', 'gif', 'webp', 'psd', 'svg', 'tiff'].
+    indexOf(ext.toLowerCase()) !== -1;
+};
+
+export const isImg = (filePath: string) => {
+    const ext = getExt(filePath);
+    return isAssetTypeAnImage(ext);
+};

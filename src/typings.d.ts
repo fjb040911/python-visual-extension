@@ -44,8 +44,9 @@ declare namespace API {
     interface Isolution {
         _id?: string,
         name: string,
-        eformData?: Ieform,
-        formOptionsSetting?: Array<IoptionsSetting>,
-        executionList: Array<IfuncJson>
+        eformData?: Array<any>,
+        formOptionsSetting?: Array<any>,
+        executionList: Array<any>,
+        layoutProps?: any,
     }
 }
