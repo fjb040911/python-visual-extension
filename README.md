@@ -1,7 +1,9 @@
 # Python-Visual
 A VSCode Extension that can visually execute Python scripts and render results in rich ways.
-The print(str) can be rendered as logs, tables, charts, and albums
+The print(str) can be rendered as logs, tables, charts, and albums.
+If you frequently use Python for various production/development tools, this Extension is very useful for you.
 ![all](https://github.com/fjb040911/python-visual-extension/assets/8717555/7fce4708-012d-403b-b9f9-d1c811d6519c)
+
 ## How to use
 ### Create Solution
 ![create](https://github.com/fjb040911/python-visual-extension/assets/8717555/7580fbc4-67d1-4b9e-aa5d-874baed36d34)
